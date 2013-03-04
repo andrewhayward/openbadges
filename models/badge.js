@@ -9,7 +9,41 @@ function sha256(value) {
   return sum.digest('hex');
 }
 
+function generateColor(str) {
+  var sum = crypto.createHash('md5');
+  sum.update(str);
+  return '#' + sum.digest('hex').substr(0,6);
+}
+
+function isDarkColor(color, cutoff) {
+  var rgb, r, g, b, brightness;
+
+  if (!(rgb = color.match(/^#?(?:([0-9a-f])([0-9a-f])([0-9a-f])|([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2}))$/)))
+    return null;
+
+  r = parseInt(rgb[1] || rgb[4] || 0, 16);
+  g = parseInt(rgb[2] || rgb[5] || 0, 16);
+  b = parseInt(rgb[3] || rgb[6] || 0, 16);
+
+  brightness = Math.sqrt(
+    r * r * 0.241 +
+    g * g * 0.691 +
+    b * b * 0.068
+  );
+
+  return brightness < (cutoff || 130);
+}
+
 var Badge = function (attributes) {
+  if (attributes.body.badge.issuer && !attributes.body.badge.issuer.color) {
+    var color = generateColor(attributes.body.badge.issuer.name);
+
+    attributes.body.badge.issuer.color = {
+      value: color,
+      dark: isDarkColor(color)
+    }
+  }
+
   this.attributes = attributes;
 };
 
