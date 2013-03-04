@@ -25,7 +25,12 @@
               <div class="openbadge" data-id="{{badge.attributes.id}}">
                 <img src="{{ badge.attributes.image_path }}" width="64">
                 <p class="title">{{ badge.attributes.body.badge.name }}</p>
-                <p class="issuer">Issuer: {{ badge.attributes.body.badge.issuer.name }}</p>
+                {% if badge.attributes.body.badge.issuer.color -%}
+                  <p class="issuer{% if badge.attributes.body.badge.issuer.color.dark %} dark" style="background-color: {{ badge.attributes.body.badge.issuer.color.value }};"{% endif %}>
+                {%- else -%}
+                  <p class="issuer">
+                {%- endif -%}
+                Issuer: {{ badge.attributes.body.badge.issuer.name }}</p>
               </div>
             </li>
           {% endfor %}
