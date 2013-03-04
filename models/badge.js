@@ -35,12 +35,20 @@ function isDarkColor(color, cutoff) {
 }
 
 var Badge = function (attributes) {
-  if (attributes.body.badge.issuer && !attributes.body.badge.issuer.color) {
-    var color = generateColor(attributes.body.badge.issuer.name);
+  if (attributes) {
+    try {
+      var issuer = attributes.body.badge.issuer;
 
-    attributes.body.badge.issuer.color = {
-      value: color,
-      dark: isDarkColor(color)
+      if (issuer && !issuer.color) {
+        var color = generateColor(attributes.body.badge.issuer.name);
+
+        attributes.body.badge.issuer.color = {
+          value: color,
+          dark: isDarkColor(color)
+        }
+      }
+    } catch () {
+      // Do nothing - color is not that important
     }
   }
 
