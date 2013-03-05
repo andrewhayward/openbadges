@@ -47,7 +47,7 @@ var Badge = function (attributes) {
           dark: isDarkColor(color)
         }
       }
-    } catch () {
+    } catch (ex) {
       // Do nothing - color is not that important
     }
   }
