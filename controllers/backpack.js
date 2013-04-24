@@ -366,7 +366,7 @@ exports.userBadgeUpload = function userBadgeUpload(req, res) {
   function redirect(err, redirect, badge) {
 
     // Handle XHR slightly differently
-    if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
+    if (req.xhr) {
       var body = {};
       if (err) {
         body.error = true;
