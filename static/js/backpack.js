@@ -559,7 +559,7 @@ Badge.View.all = [];
                 AllBadges.add(model);
 
               var $wrapper = $('<li>').addClass('span3 ' + itemClass),
-                  $container = $('#badges');;
+                  $container = $('#badges');
 
               $container
                 .prepend($wrapper)
