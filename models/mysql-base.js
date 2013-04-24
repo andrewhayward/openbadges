@@ -88,13 +88,22 @@ Base.prototype.save = function save(callback) {
   var table = this.getTableName();
   var err = this.validate(attributes);
   var model = this.model;
-  var prepMethods = (model.prepare || {})['in'] || {};
+  var prepMethodsIn = (model.prepare || {})['in'] || {};
+  var prepMethodsOut = (model.prepare || {})['out'] || {};
   var preppedAttributes = {};
 
   function parseResult(err, result) {
     if (err) { return callback(err, null); }
     if (!attributes.id && result.insertId)
       attributes.id = result.insertId;
+
+    Object.keys(prepMethodsOut).forEach(function (key) {
+      var mutator = prepMethodsOut[key];
+      try {
+        attributes[key] = mutator(attributes[key], attributes);
+      } catch (e) {}
+    });
+
     return callback(null, this);
   }
 
@@ -105,7 +114,7 @@ Base.prototype.save = function save(callback) {
     this.presave();
 
   Object.keys(attributes).forEach(function (key) {
-    var prep = prepMethods[key] || function(x) { return x; };
+    var prep = prepMethodsIn[key] || function(x) { return x; };
     preppedAttributes[key] = prep(attributes[key], attributes);
   });
 
