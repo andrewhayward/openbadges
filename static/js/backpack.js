@@ -573,6 +573,10 @@ Badge.View.all = [];
         error: function (xhr, status) {
           $collection.removeClass('uploading');
           alert('There was an error uploading your badge.');
+        },
+        complete: function () {
+          $selector.remove();
+          $selector = createFileInput().appendTo($form);
         }
       });
     }
@@ -580,27 +584,29 @@ Badge.View.all = [];
     return false;
   }
 
+  function createFileInput () {
+    return $('<input>')
+      .attr({
+        type: 'file',
+        name: 'userBadge',
+        accept: accepted.join(','),
+        id: 'badgeUploadSelector'
+      }).on('change', function() {
+        $form.submit();
+      });
+  }
+
   // It's quite possible that the browser doesn't suuport upload by XHR.
-  var $form = $('<form>'),
-      $selector = $('<input>'),
+  var accepted = ['image/png'],
+      $form = $('<form>'),
+      $selector = createFileInput(),
       $csrf = $('<input>'),
-      accepted = ['image/png'],
       xhr;
 
   $form.attr({
     method: 'post',
     action: '/backpack/badge',
     enctype: 'multipart/form-data'
-  });
-
-  // File input field
-  $selector.attr({
-    type: 'file',
-    name: 'userBadge',
-    accept: accepted.join(','),
-    id: 'badgeUploadSelector'
-  }).on('change', function() {
-    $form.submit();
   });
 
   $csrf.attr({
@@ -610,8 +616,8 @@ Badge.View.all = [];
   });
 
   $form
-    .append($selector)
     .append($csrf)
+    .append($selector)
     .appendTo(document.body)
     .hide();
 
