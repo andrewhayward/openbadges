@@ -358,7 +358,21 @@ exports.userBadgeUpload = function userBadgeUpload(request, response) {
   var tmpfile = request.files.userBadge;
 
   // go back to the manage page and potentially show an error
-  function redirect(err, redirect) {
+  function redirect(err, redirect, badge) {
+    if (request.headers['x-requested-with'] === 'XMLHttpRequest') {
+      var body = {};
+      if (err) {
+        body.error = true;
+        body.message = err.message;
+      } else {
+        body.error = false;
+        body.badge = badge.attributes;
+      }
+
+      response.contentType('text/json');
+      return response.send(body);
+    }
+
     if (!redirect) {
       redirect = '/backpack/add'
     }
@@ -407,7 +421,7 @@ exports.userBadgeUpload = function userBadgeUpload(request, response) {
           logger.debug(err);
           return redirect(new Error('There was a problem saving your badge!'));
         }
-        return redirect(null, '/');
+        return redirect(null, '/', badge);
       });
     });
   });
