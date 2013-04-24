@@ -574,12 +574,11 @@ Badge.View.all = [];
       error: function (xhr, status) {
         $collection.removeClass('uploading');
         alert('There was an error uploading your badge.');
-      },
-      complete: function () {
-        $selector.remove();
-        $selector = createFileInput().appendTo($form);
       }
     });
+
+    $selector.remove();
+    $selector = createFileInput().appendTo($form);
 
     return false;
   }
