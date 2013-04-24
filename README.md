@@ -6,6 +6,9 @@ We intend to provide an open set of specifications, tools and services for
 generating verifiable badges that users can take with them wherever they go
 and use however they like.
 
+The latest open standard we released can be found in the new assertion specification: [https://github.com/mozilla/openbadges/wiki/New-Assertion-Specification](https://github.com/mozilla/openbadges/wiki/New-Assertion-Specification). 
+The assertion includes the open standard, the metadata specification, we defined. 
+
 For more information, check out http://openbadges.org
 
 ## I'm an Issuer, how do I use this?
@@ -119,13 +122,15 @@ and then back in windows you can fire up your favourite browser and connect to t
           database: 'openbadges'
         },
 
-3. Install local dependencies: `npm install`
+3. Install external tools:
+  * [PhantomJS](http://phantomjs.org): We use PhantomJS for running unit tests. On a debian based Linux system you can run `sudo apt-get install phantomjs` to install and run `phantomjs --version` to check it is installed. For other systems you can try [downloading](http://phantomjs.org/download.html) and installing it or [building it from source](http://phantomjs.org/build.html).
+4. Install local dependencies: `npm install`
 
-4. Install submodules: `git submodule update --init`
+5. Install submodules: `git submodule update --init`
 
-5. Run the test suite: `npm test`
+6. Run the test suite: `npm test`
 
-6. Start your server: `npm start`
+7. Start your server: `npm start`
 
 No matter which way you choose, you should join the
 [Open Badges Google Group](https://groups.google.com/forum/#!forum/openbadges). If
@@ -170,6 +175,16 @@ If you want to write tests for your migration, check out
 `test/migration.test.js` for inspiration.
 
   [node-db-migrate]: https://github.com/nearinfinity/node-db-migrate#creating-migrations
+
+### Production 
+
+The codebase behaves slightly differently when run in an environment where
+environment variable `NODE_ENV=production`. These differences include:
+
+* less verbose logging
+* using precompiled templates for client-side rendering
+  * run `bin/template-precompile` to generate
+* "Test Site" banner will not show in the UI
 
 ## Related Projects
 * https://github.com/lmorchard/django-badger -- Issuing app for Django

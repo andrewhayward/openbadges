@@ -6,9 +6,7 @@ var conf = require('../lib/configuration');
 var type = dbm.dataType;
 
 exports.up = function(db, callback) {
-
   const path = conf.get('badge_path').replace(/static.*/, 'static');
-
   function storeImageData(entry, callback) {
     if (!entry.image_path) return callback();
     try {
@@ -30,7 +28,7 @@ exports.up = function(db, callback) {
 
   async.waterfall([
     function addColumn(callback) {
-      const sql = 'ALTER TABLE `badge` ADD image_data BLOB DEFAULT NULL;';
+      const sql = 'ALTER TABLE `badge` ADD image_data LONGBLOB DEFAULT NULL;';
       return db.runSql(sql, wrap(callback))
     },
     function getImagePaths(data, callback) {

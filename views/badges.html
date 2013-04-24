@@ -6,8 +6,7 @@
 
 {% if not badges.length %}
   {% block noBadges %}
-    <h1>No badges.  Better get out there and start earning some!</h1>
-    <p>By the way, <a href="http://p2pu.org">P2PU</a> would be a great place to start
+    {% include 'no-badges.html' %}
   {% endblock %}
 {% else %}
   <input type="hidden" name="_csrf" value="{{ csrfToken }}">
@@ -30,8 +29,8 @@
             <li class="span3 openbadge-container">
               <div class="openbadge" data-id="{{badge.attributes.id}}">
                 <img src="{{ badge.attributes.imageUrl }}" width="64">
-                <p class="title" title="{{ badge.attributes.body.badge.name }}">{{ badge.attributes.body.badge.name }}</p>
-                <p class="issuer">Issuer: {{ badge.attributes.body.badge.issuer.name }}</p>
+                <p class="title" title="{{ badge.attributes.body.badge.name|e }}">{{ badge.attributes.body.badge.name|e }}</p>
+                <p class="issuer">Issuer: {{ badge.attributes.body.badge.issuer.name|e }}</p>
               </div>
             </li>
           {% endfor %}
@@ -63,7 +62,12 @@
 </script>
 
 <!-- third party -->
-<script type="text/javascript" src="/js/nunjucks-dev.js"></script>
+{% if settings.useCompiledTemplates %}
+  <script type="text/javascript" src="/js/nunjucks-min.js"></script>
+  <script type="text/javascript" src="/js/nunjucks-templates.js"></script>
+{% else %}
+  <script type="text/javascript" src="/js/nunjucks-dev.js"></script>
+{% endif %}
 <script type="text/javascript" src="/js/underscore.js"></script>
 <script type="text/javascript" src="/js/backbone.js"></script>
 <script type="text/javascript" src="/vendor/bootstrap/js/bootstrap-alert.js"></script>

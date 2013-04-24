@@ -40,13 +40,13 @@ module.exports = function conmock (options, callback) {
       return this.header('Content-Type', mime.lookup(type));
     },
     type: function (type) {
-      return this.header('Content-Type', mime.lookup(type));
+      this.header('Content-Type', mime.lookup(type));
+      return this;
     },
     send: function (data, status) {
       if (typeof data === 'number') {
         var tmp = data;
-        data = status;
-        status = tmp;
+        data = status, status = tmp;
       }
       this.fntype = 'send';
       this.body = data;
@@ -56,8 +56,7 @@ module.exports = function conmock (options, callback) {
     json: function (data, status) {
       if (typeof data === 'number') {
         var tmp = data;
-        data = status;
-        status = tmp;
+        data = status, status = tmp;
       }
       this.fntype = 'json';
       this.body = data;
@@ -73,6 +72,10 @@ module.exports = function conmock (options, callback) {
       callback(null, this, request);
     },
     redirect: function (path, status) {
+      if (typeof path === 'number') {
+        var tmp = path;
+        path = status, status = tmp;
+      }
       this.fntype = 'redirect';
       this.path = path;
       this.status = status || 301;

@@ -23,9 +23,9 @@ AppTestHarness.prototype = {
       this.undoModuleFunctionChanges();
       t.end();
     }).bind(this));
-  
+
     testUtils.finish(this.t.test.bind(this.t));
-    
+
     this.t.end();
   },
   resolve: function(path) {
@@ -66,7 +66,7 @@ AppTestHarness.prototype = {
   }
 };
 
-exports.prepareApp = function prepareApp(cb) {  
+exports.prepareApp = function prepareApp(cb) {
   test("preparing database and app", function(t) {
     testUtils.prepareDatabase(function () {
       app.listen(0, function() {
@@ -79,7 +79,7 @@ exports.prepareApp = function prepareApp(cb) {
 
 function ensureRequest(request, method, url, options, assertions) {
   var name = method + ' ' + url;
-  
+
   options.method = method;
   return function(t) {
     request(url, options, function(err, res, body) {
@@ -102,7 +102,7 @@ function ensureRequest(request, method, url, options, assertions) {
       if (assertions.responseHeaders)
         Object.keys(assertions.responseHeaders).forEach(function(header) {
           var expected = assertions.responseHeaders[header];
-        
+
           if (expected instanceof RegExp) {
             if (typeof(res.headers[header]) != 'undefined')
               t.ok(res.headers[header].toString().match(expected),
@@ -124,14 +124,14 @@ function replaceModuleFunctionsForTesting(port) {
   var conf = require('../lib/configuration');
   var testConf = {
     protocol: 'http:',
-    host: 'localhost',
+    hostname: 'localhost',
     port: port
   };
   var originalVerify = browserid.verify;
   var originalUid = middleware.utils.uid;
   var originalCreateSecureToken = middleware.utils.createSecureToken;
   var originalConfGet = conf.get;
-  
+
   conf.get = function fakeGet(val, env) {
     if (val in testConf)
       return testConf[val];
@@ -141,16 +141,16 @@ function replaceModuleFunctionsForTesting(port) {
     return FAKE_UID;
   };
   middleware.utils.uid = function fakeUid() { return FAKE_UID; };
-  browserid.verify = function fakeVerify(uri, assertion, audience, cb) {
+  browserid.verify = function fakeVerify(opts, cb) {
     var expected = FAKE_ASSERTION;
-    if (assertion == expected)
-      return cb(null, {email: FAKE_EMAIL});
+    if (opts.assertion == expected)
+      return cb(null, FAKE_EMAIL);
     else
-      return cb({type: 'invalid assertion',
-                 body: 'expected ' + JSON.stringify(expected) +
-                       ' but got ' + JSON.stringify(assertion)}, null);
+      return cb({code: 'invalid-assertion',
+                 message: 'expected ' + JSON.stringify(expected) +
+                       ' but got ' + JSON.stringify(opts.assertion)}, null);
   };
-  
+
   return function undo() {
     conf.get = originalConfGet;
     browserid.verify = originalVerify;

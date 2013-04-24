@@ -12,19 +12,19 @@ $.ajaxSetup({
 })
 if(!nunjucks.env) {
     nunjucks.env = new nunjucks.Environment(new nunjucks.HttpLoader('/views'));
-    if (!nunjucks.env.globals)
-      nunjucks.env.globals = {};
-    $.extend(nunjucks.env.globals, {
-      csrfToken: CSRF
-    });
-    nunjucks.env.addFilter('formatdate', function (rawDate) {
-      if (parseInt(rawDate, 10) == rawDate) {
-        var date = new Date(rawDate * 1000);
-        return date.toString();
-      }
-      return rawDate;
-    });
 }
+if (!nunjucks.env.globals)
+  nunjucks.env.globals = {};
+$.extend(nunjucks.env.globals, {
+  csrfToken: CSRF
+});
+nunjucks.env.addFilter('formatdate', function (rawDate) {
+  if (parseInt(rawDate, 10) == rawDate) {
+    var date = new Date(rawDate * 1000);
+    return date.toString();
+  }
+  return rawDate;
+});
 }(/*end setup*/)
 
 
@@ -328,7 +328,9 @@ Details.View = Backbone.View.extend({
     'click .badge-image': 'debugBadge',
     'click .disown': 'showConfirmation',
     'click .confirm-disown .nope': 'hideConfirmation',
-    'click .confirm-disown .yep': 'destroyBadge'
+    'click .confirm-disown .yep': 'destroyBadge',
+    'click .facebook-share': 'showFacebookModal',
+    'click .confirm-facebook-share .nope': 'hideFacebookModal'
   },
 
   debugBadge: function (event) {
@@ -341,6 +343,14 @@ Details.View = Backbone.View.extend({
 
   hideConfirmation: function () {
     this.$el.find('.confirm-disown').fadeOut('fast');
+  },
+
+  showFacebookModal: function () {
+	  this.$el.find('.confirm-facebook-share').fadeIn('fast');
+  },
+
+  hideFacebookModal: function () {
+	  this.$el.find('.confirm-facebook-share').fadeOut('fast');
   },
 
   destroyBadge: function () {

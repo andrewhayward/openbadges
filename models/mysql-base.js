@@ -1,3 +1,4 @@
+var logger = require('../lib/logging').logger;
 var client = require('../lib/mysql').client;
 
 var Base = function () { };
@@ -42,7 +43,8 @@ Base.apply = function apply(Model, table) {
 
   Model.findOne = function (criteria, callback) {
     Model.find(criteria, function (err, results) {
-      if (err) callback(err);
+      if (err)
+        return callback(err);
       callback(null, results.pop());
     });
   };

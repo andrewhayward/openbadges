@@ -4,6 +4,9 @@ var configuration = require('./lib/configuration');
 var logger = require('./lib/logging').logger;
 var crypto = require('crypto');
 var User = require('./models/user');
+var path = require('path');
+var lessMiddleware = require('less-middleware');
+var _ = require('underscore');
 
 // `COOKIE_SECRET` is randomly generated on the first run of the server,
 // then stored to a file and looked up on restart to maintain state.
@@ -20,7 +23,7 @@ exports.cookieSessions = function cookieSessions() {
     cookie: {
       httpOnly: true,
       maxAge: (7 * 24 * 60 * 60 * 1000), //one week
-      secure: (configuration.get('protocol') === 'https')
+      secure: false
     }
   });
 };
@@ -76,22 +79,6 @@ exports.userFromSession = function userFromSession() {
       req.user = res.locals.user = user;
       return next();
     });
-  };
-};
-
-exports.testUser = function testUser(username) {
-  return function(req, res, next) {
-    if (!req.user) {
-      User.findOrCreate(username, function (err, user) {
-        if (err) {
-          logger.error("Problem finding/creating user:");
-          logger.error(err);
-          return next(err);
-        }
-        req.user = res.locals.user = user;
-        return next();
-      });
-    }
   };
 };
 
@@ -157,7 +144,18 @@ exports.notFound = function notFound() {
       res.type('txt').send('Not found');
     }
   }
-}
+};
+
+exports.less = function less(env) {
+  var base = {
+    src: path.join(__dirname, "static/less"),
+    paths: [path.join(__dirname, "static/vendor/bootstrap/less")],
+    dest: path.join(__dirname, "static/css"),
+    prefix: '/css',
+  };
+  var config = configuration.get('less') || {};
+  return lessMiddleware(_.defaults(base, config));
+};
 
 var utils = exports.utils = {};
 var pseudoRandomBytes = function(num) {

@@ -7,9 +7,9 @@
     <link rel="icon" href="/favicon.ico">
     <link href="//www.mozilla.org/tabzilla/media/css/tabzilla.css" rel="stylesheet" />
     <link rel="stylesheet" href="/css/backpack.min.css" type="text/css" media="all" />
-    <title dir="ltr">Open Badge Backpack</title>
+    <title dir="ltr">Mozilla Backpack</title>
     <script type="text/javascript" src="/js/modernizr.js"></script>
-    <script type="text/javascript" src="https://login.persona.org/include.js"></script>
+    <script type="text/javascript" src="{{ getBrowserIdScriptUrl() }}"></script>
     <script type="text/javascript" src="/js/jquery.min.js"></script>
     <script type="text/javascript">
       var _gaq = _gaq || [];
@@ -36,14 +36,18 @@
             <img src="/images/logo.png" alt="Mozilla Backpack logo" />
           </a>
           <a href="http://www.mozilla.org/" id="tabzilla">a mozilla.org joint</a>
-          <ul class="nav pull-right">
           {% if user %}
+          <ul class="nav pull-left">
             <li {% if activeNav == 'badges' %}class="active"{% endif %}>
               <a href="/" class="icon badge-link"><span>Badges</span></a>
             </li>
             <li {% if activeNav == 'collections' %}class="active"{% endif %}>
               <a href="/backpack" class="icon collection-link"><span>Collections</span></a>
             </li>
+          </ul>
+          {% endif %}
+          <ul class="nav pull-right">
+          {% if user %}
             <li class="user navbar-text">{{user.attributes.email}}</li>
             <li class="dropdown">
               <a href="#" class="icon gear-link dropdown-toggle" data-toggle="dropdown">
@@ -55,7 +59,7 @@
               </ul>
             </li>
           {% elif bodyClass == 'login' %}
-            <li><a class="js-browserid-link" href="#">Sign In</a></li>
+            <li><a class="js-browserid-link" href="#">Log In</a></li>
           {% endif %}
           </ul>
         </div>

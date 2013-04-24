@@ -1,3 +1,9 @@
+// Newrelic *must* be the first module loaded. Do not move this require module!
+// docs, https://npmjs.org/package/newrelic
+if ( process.env.NEW_RELIC_HOME ) {
+  require( 'newrelic' );
+}
+
 // Configure & start express.
 var express = require('express');
 var http = require('http');
@@ -5,25 +11,26 @@ var fs = require('fs');
 var path = require('path');
 var middleware = require('./middleware');
 var logger = require('./lib/logging').logger;
+var browserid = require('./lib/browserid');
 var configuration = require('./lib/configuration');
 var flash = require('connect-flash');
 var nunjucks = require('nunjucks');
-var less = require('less-middleware');
+var _ = require('underscore');
 
 var app = express();
 app.logger = logger;
 app.config = configuration;
 
-// View helpers. `user` and `badges` are set so we can use them in `if`
-// statements without getting undefined errors and without having to use typeof
-// checks.
+/* Default values for template variables */
 app.locals({
-  login: true,
-  title: 'Backpack',
   error: [],
   success: [],
-  badges: {},
+  getBrowserIdScriptUrl: function() {
+    return browserid.getIncludeScriptUrl();
+  }
 });
+
+app.set('useCompiledTemplates', configuration.get('nunjucks_precompiled'));
 
 // default view engine
 var env = new nunjucks.Environment(new nunjucks.FileSystemLoader(__dirname + '/views'));
@@ -39,12 +46,7 @@ env.addFilter('formatdate', function (rawDate) {
 
 // Middleware. Also see `middleware.js`
 // ------------------------------------
-app.use(less({
-  src: path.join(__dirname, "static/less"),
-  paths: [path.join(__dirname, "static/vendor/bootstrap/less")],
-  dest: path.join(__dirname, "static/css"),
-  prefix: '/css'
-}));
+app.use(middleware.less(app.get('env')));
 app.use(express.static(path.join(__dirname, "static")));
 app.use(express.static(path.join(configuration.get('var_dir'), "badges")));
 app.use("/views", express.static(path.join(__dirname, "views")));
@@ -55,16 +57,10 @@ app.use(express.methodOverride());
 app.use(middleware.logRequests());
 app.use(middleware.cookieSessions());
 app.use(middleware.userFromSession());
-app.configure('development', function () {
-  var testUser = process.env['OPENBADGES_TEST_USER'];
-  if (testUser)
-    app.use(middleware.testUser(testUser));
-});
 app.use(flash());
 app.use(middleware.csrf({
   whitelist: [
     '/backpack/authenticate',
-    '/issuer/validator/?',
     '/displayer/convert/.+',
     '/issuer/frameless.*',
     '/api/.+'
@@ -74,7 +70,6 @@ app.use(middleware.cors({ whitelist: ['/_badges.*', '/issuer.*', '/baker', '/dis
 app.use(app.router);
 app.use(middleware.notFound());
 app.configure('development', function () {
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   var gitUtil = require('./lib/git-util');
   try {
     var sha = gitUtil.findSHA();
@@ -83,10 +78,9 @@ app.configure('development', function () {
   catch (ex) {
     logger.warn(ex.message);
   }
+  browserid.configure({testUser: process.env['BROWSERID_TEST_USER']});
 });
-app.configure('production', function () {
-  app.use(express.errorHandler());
-});
+app.use(express.errorHandler());
 
 
 // Routes
@@ -120,8 +114,6 @@ app.get('/issuer/frame', issuer.frame);
 app.post('/issuer/frameless', issuer.frameless);
 app.get('/issuer/assertion', issuer.issuerBadgeAddFromAssertion);
 app.post('/issuer/assertion', issuer.issuerBadgeAddFromAssertion);
-app.get('/issuer/validator', issuer.validator);
-app.post('/issuer/validator', issuer.validator);
 app.get('/issuer/welcome', issuer.welcome);
 
 app.get('/displayer/convert/email', displayer.emailToUserIdView);
@@ -172,6 +164,8 @@ app.all('/api/*', backpackConnect.allowCors());
 app.post('/api/token', backpackConnect.refresh());
 app.post('/api/issue', backpackConnect.authorize("issue"),
                        issuer.issuerBadgeAddFromAssertion);
+app.get('/api/identity', backpackConnect.authorize("issue"),
+                         backpackConnect.hashIdentity());
 
 if (!module.parent) {
   var start_server = function start_server(app) {
