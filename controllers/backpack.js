@@ -363,7 +363,8 @@ exports.addBadge = function addBadge(request, response) {
 
 
 exports.userBadgeUpload = function userBadgeUpload(req, res) {
-  function redirect(err, redirect) {
+  function redirect(err, redirect, badge) {
+
     // Handle XHR slightly differently
     if (req.headers['x-requested-with'] === 'XMLHttpRequest') {
       var body = {};
@@ -436,7 +437,14 @@ exports.userBadgeUpload = function userBadgeUpload(req, res) {
         return callback(err);
       }
       awardOptions.assertion = assertion;
-      awardBadge(awardOptions, callback);
+      awardBadge(awardOptions, function(err, meta) {
+        if (err) return callback(err);
+
+        Badge.findById(meta.attributes.id, function(err, badge) {
+          if (err) return callback(err);
+          callback(err, null, badge);
+        });
+      });
     }
   ], redirect);
 };
