@@ -537,49 +537,49 @@ Badge.View.all = [];
       }
     }
 
-    if (file) {
-      data.append($selector.attr('name'), file);
-      $.ajax({
-        url: $form.attr('action'),
-        type: $form.attr('method').toUpperCase(),
-        data: data,
-        processData: false,
-        contentType: false,
-        success: function (rsp, status, xhr) {
-          if (rsp.error) {
-            $collection.removeClass('uploading');
-            alert(rsp.message);
-          } else {
-            setTimeout(function() {
-              $collection.removeClass('uploading');
-              var model = new Badge.Model(rsp.badge),
-                  view = new Badge.View({ model: model }).render();
+    if (!file) return false;
 
-              if (!AllBadges.get(model.id))
-                AllBadges.add(model);
-
-              var $wrapper = $('<li>').addClass('span3 ' + itemClass),
-                  $container = $('#badges');
-
-              $container
-                .prepend($wrapper)
-                .find('.'+itemClass+':gt(6)').remove();
-
-              $wrapper.append(view.$el);
-              view.$el.hide().fadeIn('slow');
-            }, 1000);
-          }
-        },
-        error: function (xhr, status) {
+    data.append($selector.attr('name'), file);
+    $.ajax({
+      url: $form.attr('action'),
+      type: $form.attr('method').toUpperCase(),
+      data: data,
+      processData: false,
+      contentType: false,
+      success: function (rsp, status, xhr) {
+        if (rsp.error) {
           $collection.removeClass('uploading');
-          alert('There was an error uploading your badge.');
-        },
-        complete: function () {
-          $selector.remove();
-          $selector = createFileInput().appendTo($form);
+          alert(rsp.message);
+        } else {
+          setTimeout(function() {
+            $collection.removeClass('uploading');
+            var model = new Badge.Model(rsp.badge),
+                view = new Badge.View({ model: model }).render();
+
+            if (!AllBadges.get(model.id))
+              AllBadges.add(model);
+
+            var $wrapper = $('<li>').addClass('span3 ' + itemClass),
+                $container = $('#badges');
+
+            $container
+              .prepend($wrapper)
+              .find('.'+itemClass+':gt(6)').remove();
+
+            $wrapper.append(view.$el);
+            view.$el.hide().fadeIn('slow');
+          }, 1000);
         }
-      });
-    }
+      },
+      error: function (xhr, status) {
+        $collection.removeClass('uploading');
+        alert('There was an error uploading your badge.');
+      },
+      complete: function () {
+        $selector.remove();
+        $selector = createFileInput().appendTo($form);
+      }
+    });
 
     return false;
   }
