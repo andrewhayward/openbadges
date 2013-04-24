@@ -168,8 +168,21 @@ form.baker #assertion {
     background: none;
     color: inherit;
     font-weight: bold;
-    border: dashed 3px #8F8F8F;
+    border: solid 3px #DDD;
     box-shadow: none;
+
+	&.droppable {
+		border-style: dashed;
+		border-color: #8F8F8F;
+	}
+
+	&.uploading {
+		background: url("../images/uploading.gif") 50% 30% no-repeat;
+
+		img {
+			visibility: hidden;
+		}
+	}
 
     .issuer {
       background: none;
