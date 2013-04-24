@@ -515,7 +515,7 @@ Badge.View.all = [];
 /**
  * Set up proper badge uploading
  */
-(function($collection) {
+(function($collection, itemClass) {
   if (!$collection.length) return;
 
   // We use this function if the browser supports upload over XHR
@@ -558,12 +558,12 @@ Badge.View.all = [];
               if (!AllBadges.get(model.id))
                 AllBadges.add(model);
 
-              var $wrapper = $('<li>').addClass('span3 openbadge-container'),
+              var $wrapper = $('<li>').addClass('span3 ' + itemClass),
                   $container = $('#badges');;
 
               $container
                 .prepend($wrapper)
-                .find('.openbadge-container:gt(6)').remove();
+                .find('.'+itemClass+':gt(6)').remove();
 
               $wrapper.append(view.$el);
               view.$el.hide().fadeIn('slow');
@@ -652,7 +652,7 @@ Badge.View.all = [];
 
     drop: upload
   }))).setElement($collection);
-})($('#badges .add-openbadge'));
+})($('#badges .add-openbadge'), 'openbadge-container');
 
 /**
  * Create a new collection for all of the groups to live in.
