@@ -367,11 +367,11 @@ exports.userBadgeUpload = function userBadgeUpload(request, response) {
       logger.debug(err);
       request.flash('error', err.message);
     }
-    return response.redirect(redirect, 303);
+    return response.redirect(303, redirect);
   }
 
   if (!user)
-    return response.redirect('/', 303);
+    return response.redirect(303, '/');
 
   if (!tmpfile.size)
     return redirect(new Error('You must choose a badge to upload.'));
