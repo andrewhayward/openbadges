@@ -403,8 +403,6 @@ Details.View = Backbone.View.extend({
 });
 
 Badge.View = Backbone.View.extend({
-  tagName: "a",
-  className: "badge",
   detailsView: null,
   events: {
     'click' : 'showDetails',
@@ -505,6 +503,142 @@ Badge.View = Backbone.View.extend({
 Badge.View.all = [];
 
 /**
+ * Set up proper badge uploading
+ */
+(function($collection) {
+  if (!$collection.length) return;
+
+  // We use this function if the browser supports upload over XHR
+  function upload (event) {
+    event.preventDefault();
+    $collection.addClass('uploading');
+
+    var e = event.originalEvent || event,
+        files = (e.dataTransfer||{}).files || $selector[0].files,
+        data = new FormData(),
+        file;
+
+    // For now, just use the first file that's appropriate.
+    // In all likelihood, there will only be one anyway.
+    for (var i = 0, l = files.length; i < l; ++i) {
+      if (_.contains(accepted, files[i].type)) {
+        file = files[i];
+        break;
+      }
+    }
+
+    if (file) {
+      data.append($selector.attr('name'), file);
+      $.ajax({
+        url: $form.attr('action'),
+        type: $form.attr('method').toUpperCase(),
+        data: data,
+        processData: false,
+        contentType: false,
+        success: function (rsp, status, xhr) {
+          if (rsp.error) {
+            $collection.removeClass('uploading');
+            alert(rsp.message);
+          } else {
+            setTimeout(function() {
+              $collection.removeClass('uploading');
+              var model = new Badge.Model(rsp.badge),
+                  view = new Badge.View({ model: model }).render();
+
+              if (!AllBadges.get(model.id))
+                AllBadges.add(model);
+
+              var $wrapper = $('<li>').addClass('span3 openbadge-container'),
+                  $container = $('#badges');;
+
+              $container
+                .prepend($wrapper)
+                .find('.openbadge-container:gt(6)').remove();
+
+              $wrapper.append(view.$el);
+              view.$el.hide().fadeIn('slow');
+            }, 1000);
+          }
+        },
+        error: function (xhr, status) {
+          $collection.removeClass('uploading');
+          alert('There was an error uploading your badge.');
+        }
+      });
+    }
+
+    return false;
+  }
+
+  // It's quite possible that the browser doesn't suuport upload by XHR.
+  var $form = $('<form>'),
+      $selector = $('<input>'),
+      $csrf = $('<input>'),
+      accepted = ['image/png'],
+      xhr;
+
+  $form.attr({
+    method: 'post',
+    action: '/backpack/badge',
+    enctype: 'multipart/form-data'
+  });
+
+  // File input field
+  $selector.attr({
+    type: 'file',
+    name: 'userBadge',
+    accept: accepted.join(','),
+    id: 'badgeUploadSelector'
+  }).on('change', function() {
+    $form.submit();
+  });
+
+  $csrf.attr({
+    type: 'hidden',
+    name: '_csrf',
+    value: $("input[name='_csrf']").val()
+  });
+
+  $form
+    .append($selector)
+    .append($csrf)
+    .appendTo(document.body)
+    .hide();
+
+  // Moment of truth - can we do it nicely?
+  xhr = new XMLHttpRequest();
+  if (!xhr.upload) return;
+
+  $collection.addClass('droppable');
+  // Hijack the form submission process
+  $form.submit(upload);
+
+  // Create a small view for the 'add badge' collection,
+  // so that it can accept new badges being dropped on it
+  (new (Backbone.View.extend({
+    events: {
+      'click': 'click',
+      'dragenter': 'nothing',
+      'dragleave': 'nothing',
+      'drop': 'drop'
+    },
+
+    click: function (event) {
+      event.preventDefault();
+      $selector.click();
+      return false;
+    },
+
+    nothing: function (event) {
+      event.preventDefault();
+      return false;
+    },
+
+    drop: upload
+  }))).setElement($collection);
+})($('#badges .add-openbadge'));
+
+/**
  * Create a new collection for all of the groups to live in.
  */
 var AllGroups = new Group.Collection();
@@ -584,7 +718,7 @@ Badge.fromElement = function (element) {
 };
 
 // creating models from html on the page
-var existingBadges = $('#badges').find('.openbadge')
+var existingBadges = $('#badges').find('.openbadge');
 var existingGroups = $('#groups').find('.group');
 _.each(existingBadges, Badge.fromElement);
 _.each(existingGroups, Group.fromElement);
