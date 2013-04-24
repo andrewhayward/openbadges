@@ -596,7 +596,7 @@ Badge.View.all = [];
       });
   }
 
-  // It's quite possible that the browser doesn't suuport upload by XHR.
+  // It's quite possible that the browser doesn't support upload by XHR.
   var accepted = ['image/png'],
       $form = $('<form>'),
       $selector = createFileInput(),
