@@ -1,3 +1,51 @@
+function showMessage(msg, type, timeout) {
+  if (typeof type === 'number' && !timeout) {
+    timeout = type;
+    type = null;
+  }
+  if (!type) {
+    type = 'block';
+  }
+
+  var $wrapper = $('#body'),
+      $container = $wrapper.find('.message-container');
+
+  if (!$container.length) {
+    $container = $(document.createElement('div'))
+      .addClass('message-container')
+      .prependTo($wrapper);
+  }
+
+  $(document.createElement('div'))
+    .addClass('alert alert-'+type)
+    .text(msg)
+    .prepend($('<a class="close" data-dismiss="alert">×</a>'))
+    .appendTo($container)
+    .hide()
+    .slideDown(1000, function() {
+      if (timeout) {
+        var $message = $(this);
+        setTimeout(function() {
+          $message.fadeOut(500, function() {
+            $message.remove();
+          });
+        }, timeout * 1000);
+      }
+    });
+}
+
+function showError(msg, timeout) {
+  showMessage(msg, 'error', timeout);
+}
+
+function showSuccess(msg, timeout) {
+  showMessage(msg, 'success', timeout);
+}
+
+function showInfo(msg, timeout) {
+  showMessage(msg, 'info', timeout);
+}
+
 !!function setup () {
 
 var CSRF = $("input[name='_csrf']").val();
@@ -549,7 +597,7 @@ Badge.View.all = [];
       success: function (rsp, status, xhr) {
         if (rsp.error) {
           $collection.removeClass('uploading');
-          alert(rsp.message);
+          showError(rsp.message);
         } else {
           setTimeout(function() {
             $collection.removeClass('uploading');
@@ -568,12 +616,14 @@ Badge.View.all = [];
 
             $wrapper.append(view.$el);
             view.$el.hide().fadeIn('slow');
+
+            showSuccess('Successfully added your badge!');
           }, 1000);
         }
       },
       error: function (xhr, status) {
         $collection.removeClass('uploading');
-        alert('There was an error uploading your badge.');
+        showError('There was an error uploading your badge.');
       }
     });
 
