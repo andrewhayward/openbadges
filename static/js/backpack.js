@@ -600,31 +600,28 @@ Badge.View.all = [];
       processData: false,
       contentType: false,
       success: function (rsp, status, xhr) {
-        if (rsp.error) {
-          $collection.removeClass('uploading');
-          showError(rsp.message);
-        } else {
-          setTimeout(function() {
-            $collection.removeClass('uploading');
-            var model = new Badge.Model(rsp.badge),
-                view = new Badge.View({ model: model }).render();
+        $collection.removeClass('uploading');
 
-            if (!AllBadges.get(model.id))
-              AllBadges.add(model);
+        if (rsp.error)
+          return showError(rsp.message);
 
-            var $wrapper = $('<li>').addClass('span3 ' + itemClass),
-                $container = $('#badges');
+        var model = new Badge.Model(rsp.badge),
+            view = new Badge.View({ model: model }).render();
 
-            $container
-              .prepend($wrapper)
-              .find('.'+itemClass+':gt(6)').remove();
+        if (!AllBadges.get(model.id))
+          AllBadges.add(model);
 
-            $wrapper.append(view.$el);
-            view.$el.hide().fadeIn('slow');
+        var $wrapper = $('<li>').addClass('span3 ' + itemClass),
+            $container = $('#badges');
 
-            showSuccess('Successfully added your badge!');
-          }, 1000);
-        }
+        $container
+          .prepend($wrapper)
+          .find('.'+itemClass+':gt(6)').remove();
+
+        $wrapper.append(view.$el);
+        view.$el.hide().fadeIn('slow');
+
+        showSuccess('Successfully added your badge!');
       },
       error: function (xhr, status) {
         $collection.removeClass('uploading');
