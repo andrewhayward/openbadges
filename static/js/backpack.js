@@ -585,9 +585,14 @@ Badge.View.all = [];
       }
     }
 
-    if (!file) return false;
+    if (!file) {
+      showError('This is not a valid badge file.');
+      $collection.removeClass('uploading');
+      return false;
+    }
 
     data.append($selector.attr('name'), file);
+
     $.ajax({
       url: $form.attr('action'),
       type: $form.attr('method').toUpperCase(),
