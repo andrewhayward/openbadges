@@ -363,23 +363,31 @@ exports.addBadge = function addBadge(request, response) {
 
 
 exports.userBadgeUpload = function userBadgeUpload(req, res) {
-  function redirect(err, redirect, badge) {
+  function findBadge(err, meta) {
+    if (err) return respond(err);
 
-    // Handle XHR slightly differently
-    if (req.xhr) {
-      var body = {};
-      if (err) {
-        body.error = true;
-        body.message = err.message;
-      } else {
-        body.error = false;
-        body.badge = badge.attributes;
-      }
+    Badge.findById(meta.attributes.id, function(err, badge) {
+      if (err) return respond(err);
+      respond(null, badge);
+    });
+  }
 
-      res.contentType('text/json');
-      return res.send(body);
+  function respond(err, badge) {
+    var body = {};
+
+    if (err) {
+      body.error = true;
+      body.message = err.message;
+    } else {
+      body.error = false;
+      body.badge = badge.attributes;
     }
 
+    res.contentType('text/json');
+    return res.json(body);
+  }
+
+  function redirect(err, redirect) {
     if (!redirect) {
       redirect = '/backpack/add'
     }
@@ -398,6 +406,7 @@ exports.userBadgeUpload = function userBadgeUpload(req, res) {
   const user = req.user;
   const tmpfile = req.files.userBadge;
   const awardOptions = {recipient: user.get('email')};
+  const responseHandler = req.xhr ? findBadge : redirect;
 
   // While the openbadges assertion specification doesn't specify a size
   // limit, our backpack does. We don't want to store lots of huge images,
@@ -409,10 +418,10 @@ exports.userBadgeUpload = function userBadgeUpload(req, res) {
     return response.redirect(303, '/');
 
   if (!tmpfile.size)
-    return redirect(new Error('You must choose a badge to upload.'));
+    return responseHandler(new Error('You must choose a badge to upload.'));
 
   if (tmpfile.size > MAX_IMAGE_SIZE)
-    return redirect(new Error('Maximum badge size is ' + MAX_IMAGE_SIZE / 1024 + 'KB'));
+    return responseHandler(new Error('Maximum badge size is ' + MAX_IMAGE_SIZE / 1024 + 'KB'));
 
   async.waterfall([
     function getBadgeImageData(callback) {
@@ -437,16 +446,9 @@ exports.userBadgeUpload = function userBadgeUpload(req, res) {
         return callback(err);
       }
       awardOptions.assertion = assertion;
-      awardBadge(awardOptions, function(err, meta) {
-        if (err) return callback(err);
-
-        Badge.findById(meta.attributes.id, function(err, badge) {
-          if (err) return callback(err);
-          callback(err, null, badge);
-        });
-      });
+      awardBadge(awardOptions, callback);
     }
-  ], redirect);
+  ], responseHandler);
 };
 
 /**
