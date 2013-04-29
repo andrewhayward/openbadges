@@ -192,23 +192,53 @@ form.baker #assertion {
     font-weight: bold;
     border: solid 3px #DDD;
     box-shadow: none;
+    position: relative;
+    overflow: hidden;
 
-	&.droppable {
-		border-style: dashed;
-		border-color: #8F8F8F;
-	}
+    &.droppable {
+      border-style: dashed;
+      border-color: #8F8F8F;
+    }
 
-	&.uploading {
-		background: url("../images/uploading.gif") 50% 30% no-repeat;
+    &.uploading {
+      background: url("../images/uploading.gif") 50% 30% no-repeat;
 
-		img {
-			visibility: hidden;
-		}
-	}
+      img {
+        visibility: hidden;
+      }
+    }
+
+    .title {
+      position: relative;
+      height: 20px;
+      overflow: visible;
+
+      input {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+      }
+    }
 
     .issuer {
       background: none;
       margin-top: 6px;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1;
+      margin: 0;
+    }
+
+    #userBadge {
+      position: absolute;
+      top: 200%;
     }
   }
 }

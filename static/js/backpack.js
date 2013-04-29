@@ -563,17 +563,18 @@ Badge.View.all = [];
 /**
  * Set up proper badge uploading
  */
-(function($collection, itemClass) {
-  if (!$collection.length) return;
+(function($form, itemClass) {
+  if (!$form.length) return;
 
   // We use this function if the browser supports upload over XHR
   function upload (event) {
     event.preventDefault();
-    $collection.addClass('uploading');
+    $form.addClass('uploading');
 
     var e = event.originalEvent || event,
         files = (e.dataTransfer||{}).files || $selector[0].files,
         data = new FormData(),
+        accepted = $selector.attr('accept').replace(/\s,\s/,',').split(','),
         file;
 
     // For now, just use the first file that's appropriate.
@@ -587,7 +588,7 @@ Badge.View.all = [];
 
     if (!file) {
       showError('This is not a valid badge file.');
-      $collection.removeClass('uploading');
+      $form.removeClass('uploading');
       return false;
     }
 
@@ -600,7 +601,7 @@ Badge.View.all = [];
       processData: false,
       contentType: false,
       success: function (rsp, status, xhr) {
-        $collection.removeClass('uploading');
+        $form.removeClass('uploading');
 
         if (rsp.error)
           return showError(rsp.message);
@@ -624,76 +625,56 @@ Badge.View.all = [];
         showSuccess('Successfully added your badge!');
       },
       error: function (xhr, status) {
-        $collection.removeClass('uploading');
+        $form.removeClass('uploading');
         showError('There was an error uploading your badge.');
       }
     });
 
-    $selector.remove();
-    $selector = createFileInput().appendTo($form);
+    replaceFileInput();
 
     return false;
   }
 
-  function createFileInput () {
-    return $('<input>')
-      .attr({
-        type: 'file',
-        name: 'userBadge',
-        accept: accepted.join(','),
-        id: 'badgeUploadSelector'
-      }).on('change', function() {
-        $form.submit();
-      });
+  function replaceFileInput () {
+    var $clone = $selector.clone()
+      .insertBefore($selector)
+      .on('change', function() { $form.submit(); });
+
+    $selector.remove();
+    $selector = $clone;
   }
 
   // It's quite possible that the browser doesn't support upload by XHR.
-  var accepted = ['image/png'],
-      $form = $('<form>'),
-      $selector = createFileInput(),
-      $csrf = $('<input>'),
+  var $csrf = $form.find('input[name="_csrf"]'),
+      $selector = $form.find('input[type="file"]'),
+      $overlay = $('<label>'),
+      label = $form.find('input[type="submit"]').val(),
       xhr;
 
-  $form.attr({
-    method: 'post',
-    action: '/backpack/badge',
-    enctype: 'multipart/form-data'
-  });
+  $overlay
+    .attr('for', $selector.attr('id'))
+    .addClass('overlay')
+    .prependTo($form);
 
-  $csrf.attr({
-    type: 'hidden',
-    name: '_csrf',
-    value: $("input[name='_csrf']").val()
-  });
+  $form.find('.title').text(label);
 
-  $form
-    .append($csrf)
-    .append($selector)
-    .appendTo(document.body)
-    .hide();
+  replaceFileInput();
 
   // Moment of truth - can we do it nicely?
   xhr = new XMLHttpRequest();
   if (!xhr.upload) return;
 
-  $collection.addClass('droppable');
-  // Hijack the form submission process
-  $form.submit(upload);
+  $form
+    .addClass('droppable')
+    .submit(upload); // Hijack the form submission process
 
   // Create a small view for the 'add badge' collection,
   // so that it can accept new badges being dropped on it
   (new (Backbone.View.extend({
     events: {
-      'click': 'click',
       'dragenter': 'nothing',
       'dragleave': 'nothing',
       'drop': 'drop'
-    },
-
-    click: function (event) {
-      event.preventDefault();
-      $selector.click();
-      return false;
     },
 
     nothing: function (event) {
@@ -702,8 +683,8 @@ Badge.View.all = [];
     },
 
     drop: upload
-  }))).setElement($collection);
-})($('#badges .add-openbadge'), 'openbadge-container');
+  }))).setElement($form);
+})($('#badges form.add-openbadge'), 'openbadge-container');
 
 /**
  * Create a new collection for all of the groups to live in.
