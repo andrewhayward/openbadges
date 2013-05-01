@@ -82,6 +82,49 @@ $.prepareDatabase({
     });
   });
 
+  test('backpack#userBadgeUpload: valid AJAX upload', function (t) {
+    const assertion = $.makeNewAssertion();
+
+    assertion.recipient = {
+      identity: hash($.EMAIL, 'seaofgalilee'),
+      salt: 'seaofgalilee',
+      hashed: true,
+      type: 'email'
+    }
+
+    $.mockHttp()
+      .get('/assertion').reply(200, assertion)
+      .get('/assertion').reply(200, assertion);
+
+    conmock({
+      handler: backpack.userBadgeUpload,
+      request: {
+        // Should really be setting it like this, as per a real request
+        // `headers: {"X-Requested-With": "XMLHttpRequest"}`
+        // But conmock doesn't inspect headers and set up the request properly,
+        // so we're just going to set `xhr` to `true` instead:
+        xhr: true,
+        user: { get: function () { return $.EMAIL } },
+        files: {
+          userBadge: {
+            size: 1,
+            path: VALID_BAKED_IMAGE
+          }
+        }
+      }
+    }, function (err, mock, req) {
+      t.notOk(mock._error, 'should not have an error');
+      t.notOk(mock.body.error, 'should not have an error');
+      Badge.findAll(function (err, badges) {
+        const expectedImageData = fs.readFileSync(VALID_BAKED_IMAGE).toString('base64');
+        t.same(badges.length, 2); // We've just uploaded one before this test
+        BadgeImage.findOne({badge_hash: badges[1].get('body_hash')}, function (err, image) {
+          t.same(image.get('image_data'), expectedImageData);
+          t.end();
+        });
+      })
+    });
+  });
 
   test('backpack#manage', function (t) {
     // #TODO: re-write after making backpack.manage sane.
