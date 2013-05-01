@@ -118,6 +118,7 @@ $.prepareDatabase({
       Badge.findAll(function (err, badges) {
         const expectedImageData = fs.readFileSync(VALID_BAKED_IMAGE).toString('base64');
         t.same(badges.length, 2); // We've just uploaded one before this test
+        t.same(mock.body.badge.id, badges[1].attributes.id);
         BadgeImage.findOne({badge_hash: badges[1].get('body_hash')}, function (err, image) {
           t.same(image.get('image_data'), expectedImageData);
           t.end();
